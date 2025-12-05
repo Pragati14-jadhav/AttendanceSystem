@@ -39,15 +39,16 @@ th{background: linear-gradient(180deg,var(--sky-100),#fff);}
 .muted{color:var(--muted);}
 .top-college-logo {position: fixed; top: 15px; left: 20px; z-index: 9999;}
 .top-college-logo img {height: 60px; object-fit: contain;}
-body{background-color:#f5f7f4; background-image:url('innerheadercommon.jpg'); background-repeat:no-repeat; background-position: top center; background-size:contain;}
+body{background-color:#f5f7f4;  background-image: url("{{ url_for('static', filename='innerheadercommon.jpg') }}"); background-repeat:no-repeat; background-position: top center; background-size:contain;}
 @media (max-width:600px){.header{flex-direction:column; align-items:flex-start}}
 </style>
 </head>
 <body>
 
 <div class="top-college-logo">
-  <img src="sieslogo.jpg" alt="College Logo">
+  <img src="{{ url_for('static', filename='sieslogo.jpg') }}" alt="College Logo">
 </div>
+
 
 <div class="app">
   <!-- Header -->
@@ -167,18 +168,55 @@ function renderAttendance(){
   table.appendChild(tbody);
   container.appendChild(table);
 
-  const saveBtn = document.createElement('button');
+    const saveBtn = document.createElement('button');
   saveBtn.textContent = "Save Attendance";
-  saveBtn.className="present-btn";
-  saveBtn.style.marginTop="10px";
-  saveBtn.onclick = ()=>{
-    students.forEach(s=>{
-      const val = document.querySelector(`input[name="att-${s.id}"]:checked`).value;
-      attendanceData[key][s.id] = val;
+  saveBtn.className = "present-btn";
+  saveBtn.style.marginTop = "10px";
+
+  saveBtn.onclick = () => {
+    const lectureAttendance = {};
+
+    // Collect current selections
+    students.forEach(s => {
+      const selected = document.querySelector(`input[name="att-${s.id}"]:checked`);
+      const val = selected ? selected.value : "absent";
+      lectureAttendance[s.id] = val;
+      attendanceData[key][s.id] = val;  // keep local cache updated
     });
-    alert('Attendance saved for '+document.getElementById("lecture-time").value);
+
+    const payload = {
+      lecture_key: key,
+      subject: document.getElementById("subject-select").value,
+      year: document.getElementById("year-select").value,
+      stream: document.getElementById("stream-select").value,
+      lecture_date_time: document.getElementById("lecture-time").value,
+      attendance: lectureAttendance
+    };
+
+    fetch("/save_attendance", {  // instead of http://127.0.0.1:5000/save_attendance
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+})
+
+    .then(async res => {
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      return res.json();
+    })
+    .then(data => {
+      alert(data.message);
+    })
+    .catch(err => {
+      console.error("Error saving attendance:", err);
+      alert("Failed to save attendance. Check console.");
+    });
   };
+
   container.appendChild(saveBtn);
+
 }
 
 function renderReport(){

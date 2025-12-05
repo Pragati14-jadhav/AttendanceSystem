@@ -11,7 +11,7 @@
     margin: 0;
     background-color: #f5f7f4;
 
-    background-image: url('innerheadercommon.jpg');
+    background-image: url("{{ url_for('static', filename='innerheadercommon.jpg') }}");
     background-repeat: no-repeat;
     background-position: top center;   /* like website */
     background-size: contain;          /* NOT full screen */
@@ -86,6 +86,7 @@
     font-weight: bold;
 }
 
+
 </style>
 
 </head>
@@ -94,7 +95,8 @@
 
 <div class="box">
     <!-- College Logo -->
-    <img src="sieslogo.jpg" alt="College Logo" class="logo">
+    <img src="{{ url_for('static', filename='sieslogo.jpg') }}" alt="College Logo">
+
 
     <h2>Teacher Portal</h2>
 
